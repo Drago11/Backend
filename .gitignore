@@ -3,3 +3,5 @@ env/
 *.ini
 **/*/__pycache__/
 **/.idea/
+docker-compose.yml
+Dockerfile
