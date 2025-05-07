@@ -13,7 +13,7 @@ class WaitlistRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_email_to_waitlist(self, email: str) -> str:
+    async def add_email_to_waitlist(self, email: EmailStr) -> str:
         waitlist_subscriber = WaitlistSubscribers(
             email=email
         )
@@ -30,5 +30,5 @@ class WaitlistRepository:
         return subscribers
 
 
-async def get_waitlist_repo(session: Annotated[AsyncSession,Depends(get_db_session)]) -> WaitlistRepository:
+def get_waitlist_repo(session: Annotated[AsyncSession,Depends(get_db_session)]) -> WaitlistRepository:
     return WaitlistRepository(session)

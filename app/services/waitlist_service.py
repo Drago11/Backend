@@ -7,7 +7,7 @@ from fastapi.params import Depends
 from pydantic import EmailStr
 from sqlalchemy.exc import IntegrityError
 
-from app.email_service.WaitlistEmailSender import send_waitlist_confirmation_email, send_email_to_waitlist
+from app.email_service.waitlist_email_sender import send_waitlist_confirmation_email, send_email_to_waitlist
 from app.models import WaitlistSubscribers
 from app.repositories.waitlist_repository import WaitlistRepository, get_waitlist_repo
 
@@ -18,7 +18,7 @@ class WaitlistService:
     def __init__(self, waitlist_repository: WaitlistRepository):
         self.repo = waitlist_repository
 
-    async def add_email_to_waitlist(self, email: str) -> dict[str, str]:
+    async def add_email_to_waitlist(self, email: EmailStr) -> dict[str, str]:
         """
         Responsible for adding an email to the waitlist,
         as well as sending confirmation mails to the users: using the WaitlistEmailSender

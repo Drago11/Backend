@@ -2,7 +2,6 @@ import os
 
 from dotenv import load_dotenv
 from fastapi_mail import ConnectionConfig
-from pydantic import EmailStr, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 load_dotenv()
@@ -11,8 +10,8 @@ load_dotenv()
 class Settings(BaseSettings):
     DATABASE_URL: str = None
     ECHO_SQL: bool = False
-    CELERY_BROKER_URL: str = None
-    CELERY_BACKEND_URL:str = None
+    REDIS_URL: str = None
+    API_KEYS:list[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

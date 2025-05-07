@@ -4,6 +4,7 @@ from fastapi import BackgroundTasks, APIRouter, Depends
 from pydantic import EmailStr
 from starlette.responses import JSONResponse
 
+from app.auth.api_key_checker import check_api_key
 from app.services import WaitlistService, get_waitlist_service
 
 waitlist_router = APIRouter(tags=["Waitlist Router"])

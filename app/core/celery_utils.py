@@ -1,9 +1,10 @@
 import asyncio
 
 from fastapi_mail import MessageSchema, MessageType, FastMail
+from pydantic import EmailStr
 
 from . import get_email_connection_config
-from .config import get_app_settings, get_email_configuration, Settings, EmailSettings
+from .config import get_app_settings, get_email_configuration, EmailSettings
 
 import logging
 
@@ -38,7 +39,7 @@ def send_email(
     logger.info(f"Successfully sent waitlist email to {recipients}")
 
 @celery_app.task
-def send_email_async(subject: str, recipients: list[str], body: str) -> None:
+def send_email_async(subject: str, recipients: list[EmailStr], body: str) -> None:
     conf = get_email_connection_config()
 
     message = MessageSchema(
