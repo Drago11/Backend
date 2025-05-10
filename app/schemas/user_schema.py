@@ -22,7 +22,7 @@ class UserOutModel(BaseModel):
     firstname: str
     lastname: str
     email: str
-    phone: str
+    phone: str | None
     profile_picture_url: str | None
 
     @classmethod
