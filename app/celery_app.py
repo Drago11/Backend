@@ -6,6 +6,6 @@ from app.core.config import Settings
 def make_celery(app_settings: Settings) -> Celery:
     return Celery(
         "worker",
-        broker=app_settings.REDIS_URL,
-        backend=app_settings.REDIS_URL,
+        broker=f"{app_settings.REDIS_URL}/1",
+        backend=f"{app_settings.REDIS_URL}/1",
     )

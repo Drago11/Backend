@@ -8,7 +8,7 @@ from fastapi.requests import Request
 from app.auth import AuthHandler, get_auth_handler, oauth
 from app.core.utils import get_current_user
 
-auth_router = APIRouter(prefix="/auth")
+auth_router = APIRouter(prefix="/auth", tags=["AuthRouter"])
 
 
 @auth_router.post("/token")
@@ -35,7 +35,7 @@ async def login_with_google(request: Request):
     (injected by FastAPI), and redirects the user to google's auth server
 
     :param request:
-    :return: A redirection basically
+    :return: None. You get redirected to Google's auth screen..
     """
     redirect_uri= request.url_for("auth_google_callback")
     return await oauth.google.authorize_redirect(request, redirect_uri)
