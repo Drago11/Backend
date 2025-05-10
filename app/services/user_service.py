@@ -1,7 +1,9 @@
+import json
 import logging
 import random
 from typing import Annotated
 
+from argon2 import PasswordHasher
 from fastapi import HTTPException
 from fastapi.params import Depends
 from pydantic import EmailStr
@@ -22,15 +24,21 @@ class UserService:
         self.redis = redis_client
 
     async def verify_user(self, new_user: UserInModel) -> dict[str, str]:
-        try:
-            existing_user = await self.get_user_by_email(new_user.email)
-            if existing_user:
-                raise HTTPException(status_code=409, detail="user already exists")
+        """This is creating a user in disguise: and the `create_user` function, doing the job of verifying.
+        They were name-switched because of implementation"""
+        existing_user = await self.get_user_by_email(new_user.email)
+        if existing_user:
+            raise HTTPException(status_code=409, detail="user already exists")
 
+        # Hash passwords before they are even stored in redis
+        ph = PasswordHasher()
+        new_user.password = ph.hash(password=new_user.password)
+
+        try:
             verification_code: str = str(random.randint(100000, 999999))
             await self.redis.set(
                 verification_code,
-                new_user.model_dump_json()
+                new_user.model_dump_json()  # Converting pydantic model to JSON
             )
 
             await send_email_verification_email(
@@ -45,15 +53,18 @@ class UserService:
             raise HTTPException(status_code=500, detail="error creating user")
 
     async def create_user(self, verification_code: str) -> UserOutModel:
-        #TODO: Implement user email verification!!
+        """This is verifying a user in disguise: and the `verify` function, doing the job of creating.
+                They were name-switched because of implementation"""
+
+        if not await self.redis.exists(verification_code):
+            raise HTTPException(status_code=401, detail="verification code is invalid or has expired")
+
         try:
-            if not await self.redis.exists(verification_code):
-                raise HTTPException(status_code=401, detail="verification code is invalid or has expired")
-            user_data: UserInModel = await (self.redis.get(verification_code))
-            await self.redis.delete(verification_code)
+            user_data = UserInModel.from_dict(json.loads(await self.redis.get(verification_code)))
 
             created_user = await self.repo.create_new_user(user_data)
 
+            await self.redis.delete(verification_code)  # Delete once user has been verified
             return UserOutModel.from_user(created_user)
 
         except IntegrityError:
@@ -67,7 +78,6 @@ class UserService:
             user = await self.repo.get_user_by_email(email)
             if not user:
                 return None
-
             return UserOutModel.from_user(user)
 
         except Exception as e:

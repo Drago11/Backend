@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import get_db_session
-from ..models.WaitlistSubscribers import WaitlistSubscribers
+from ..models import WaitlistSubscriber
 
 
 class WaitlistRepository:
@@ -14,16 +14,15 @@ class WaitlistRepository:
         self.session = session
 
     async def add_email_to_waitlist(self, email: EmailStr) -> str:
-        waitlist_subscriber = WaitlistSubscribers(
+        waitlist_subscriber = WaitlistSubscriber(
             email=email
         )
         self.session.add(waitlist_subscriber)
         await self.session.commit()
-        await self.session.refresh(waitlist_subscriber)
         return "Added"
 
-    async def get_waitlist_subscribers(self, ) -> Sequence[WaitlistSubscribers]:
-        stmt = select(WaitlistSubscribers)
+    async def get_waitlist_subscribers(self, ) -> Sequence[WaitlistSubscriber]:
+        stmt = select(WaitlistSubscriber)
         result = await self.session.execute(stmt)
 
         subscribers = result.scalars().all()

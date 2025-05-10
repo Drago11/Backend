@@ -1,15 +1,15 @@
 import logging
 from typing import Sequence, Annotated
 
-from fastapi import BackgroundTasks
 from fastapi.exceptions import HTTPException
 from fastapi.params import Depends
 from pydantic import EmailStr
 from sqlalchemy.exc import IntegrityError
 
 from app.email_service.waitlist_email_sender import send_waitlist_confirmation_email, send_email_to_waitlist
-from app.models import WaitlistSubscribers
+from app.models import WaitlistSubscriber
 from app.repositories.waitlist_repository import WaitlistRepository, get_waitlist_repo
+from app.schemas.email_schema import EmailBody
 
 logger = logging.getLogger("uvicorn")
 
@@ -38,7 +38,7 @@ class WaitlistService:
             logger.error(f"Error adding email to waitlist: {e}")
             raise HTTPException(status_code=500, detail="Unknown error occured")
 
-    async def get_waitlist_subscribers(self, ) -> Sequence[WaitlistSubscribers]:
+    async def get_waitlist_subscribers(self, ) -> Sequence[WaitlistSubscriber]:
         try:
             waitlist_users = await self.repo.get_waitlist_subscribers()
             return waitlist_users
@@ -48,18 +48,16 @@ class WaitlistService:
 
     async def send_mail_to_waitlist_subscribers(
             self,
-            subject:str,
-            title:str,
-            body:str,
+            email_message: EmailBody
     ) -> dict[str, str]:
         try:
-            waitlist_subs: Sequence[WaitlistSubscribers] = await self.get_waitlist_subscribers()
+            waitlist_subs: Sequence[WaitlistSubscriber] = await self.get_waitlist_subscribers()
             waitlist_subs_emails: list[str] = [sub.email for sub in waitlist_subs]
             await send_email_to_waitlist(
-                subject=subject,
-                title=title,
+                subject=email_message.subject,
+                title=email_message.title,
                 recipients=waitlist_subs_emails,
-                body=body,
+                body=email_message.body,
             )
             return {"detail": "successfully sent email to waitlist subscribers" }
         except Exception as e:

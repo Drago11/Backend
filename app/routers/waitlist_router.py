@@ -1,10 +1,9 @@
 from typing import Annotated
 
-from fastapi import BackgroundTasks, APIRouter, Depends
+from fastapi import APIRouter, Depends
 from pydantic import EmailStr
-from starlette.responses import JSONResponse
 
-from app.auth.api_key_checker import check_api_key
+from app.schemas.email_schema import EmailBody
 from app.services import WaitlistService, get_waitlist_service
 
 waitlist_router = APIRouter(tags=["Waitlist Router"])
@@ -20,13 +19,9 @@ async def add_to_waitlist(
 
 @waitlist_router.post("/update_waitlist")
 async def send_email_to_waitlist(
-        subject:str,
-        body:str,
-        title:str,
+        email_message: EmailBody,
         waitlist_service: Annotated[WaitlistService, Depends(get_waitlist_service)],
 ) -> dict[str, str]:
     return await waitlist_service.send_mail_to_waitlist_subscribers(
-        subject=subject,
-        title=title,
-        body=body,
+        email_message=email_message
     )

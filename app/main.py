@@ -1,20 +1,19 @@
 import logging
 import time
-
 from fastapi import FastAPI
-from fastapi.params import Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.params import Depends
+from scalar_fastapi import get_scalar_api_reference
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 
 from app.auth.api_key_checker import check_api_key
-from app.auth.auth import auth_router
-from app.routers.user_router import user_router
-from app.routers.waitlist_router import waitlist_router
+from app.core import settings
+from app.routers import auth_router, user_router, waitlist_router
 
 app = FastAPI(
-    dependencies=[Depends(check_api_key)],
     title="Knot9ja Backend API",
-    description="A new and improve way to find job services in Nigeria!",
+    description="A new and improved way to find job services in Nigeria!",
 )
 logger = logging.getLogger("uvicorn")
 
@@ -22,6 +21,8 @@ origins = [
     "http://localhost:3000",
     "https://knot9ja.vercel.app",
 ]
+
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -29,6 +30,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.middleware("http")
 async def measure_response_time(request: Request, call_next):
@@ -40,5 +42,14 @@ async def measure_response_time(request: Request, call_next):
     return response
 
 
-# app.include_router(auth_router)
-app.include_router(waitlist_router)
+@app.get("/scalar", include_in_schema=False)
+async def scalar_html():
+    return get_scalar_api_reference(
+        openapi_url=app.openapi_url,
+        title=app.title,
+    )
+
+
+app.include_router(auth_router, )
+app.include_router(user_router, dependencies=[Depends(check_api_key)], )
+app.include_router(waitlist_router, dependencies=[Depends(check_api_key)], )

@@ -4,7 +4,6 @@ from fastapi import HTTPException
 from jinja2 import FileSystemLoader, Environment
 from pydantic import EmailStr
 
-from ..core import send_email
 from ..core.celery_utils import send_email_async
 
 logger = logging.getLogger("uvicorn")
@@ -57,7 +56,7 @@ async def send_email_to_waitlist(
         for recipient in recipients:
             send_email_async.delay(
                 subject=subject,
-                recipient=[recipient],
+                recipients=[recipient],
                 body=rendered_body
             )
     except Exception as e:

@@ -1,13 +1,12 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from alembic import context
-
 from app.db.base import Base  # Update this to your actual Base path
-from app.models import WaitlistSubscribers, User
+from app.models import User, WaitlistSubscriber, RefreshToken
 
 # Alembic Config object
 config = context.config

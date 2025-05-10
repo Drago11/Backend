@@ -1,11 +1,12 @@
+from datetime import datetime
+
 from sqlalchemy import String, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..db.base import Base
 
-from datetime import datetime
 
-class WaitlistSubscribers(Base):
+class WaitlistSubscriber(Base):
     __tablename__ = "waitlist_subscribers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

@@ -8,10 +8,14 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = None
-    ECHO_SQL: bool = False
-    REDIS_URL: str = None
-    API_KEYS:list[str] = None
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    ECHO_SQL: bool = os.getenv("ECHO_SQL")
+    REDIS_URL: str = os.getenv("REDIS_URL")
+    API_KEYS: list[str] = os.getenv("API_KEYS")
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    ALGORITHM: str = os.getenv("ALGORITHM")
+    CLIENT_ID: str = os.getenv("CLIENT_ID")
+    CLIENT_SECRET: str = os.getenv("CLIENT_SECRET")
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -43,14 +47,20 @@ def get_app_settings() -> Settings:
 def get_email_configuration() -> EmailSettings:
     return EmailSettings()
 
+
 def get_email_connection_config() -> ConnectionConfig:
-    settings = EmailSettings()
+    email_settings_config = EmailSettings()
     return ConnectionConfig(
-        MAIL_USERNAME=settings.MAIL_USERNAME,
-        MAIL_PASSWORD=settings.MAIL_PASSWORD,
-        MAIL_FROM=settings.MAIL_FROM,
-        MAIL_PORT=settings.MAIL_PORT,
-        MAIL_SERVER=settings.MAIL_SERVER,
-        MAIL_STARTTLS=settings.MAIL_STARTTLS,
-        MAIL_SSL_TLS=settings.MAIL_SSL_TLS
+        MAIL_USERNAME=email_settings_config.MAIL_USERNAME,
+        MAIL_PASSWORD=email_settings_config.MAIL_PASSWORD,
+        MAIL_FROM=email_settings_config.MAIL_FROM,
+        MAIL_PORT=email_settings_config.MAIL_PORT,
+        MAIL_SERVER=email_settings_config.MAIL_SERVER,
+        MAIL_STARTTLS=email_settings_config.MAIL_STARTTLS,
+        MAIL_SSL_TLS=email_settings_config.MAIL_SSL_TLS
     )
+
+
+settings = get_app_settings()
+email_settings = get_email_configuration()
+conf = get_email_connection_config()
