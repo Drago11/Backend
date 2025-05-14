@@ -1,43 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Knot9ja Email</title>
-    <style>
-        body {
-          font-family: 'Lora', serif;
-          margin: 0;
-          padding: 0;
-          background-color: #ffffff;
-        }
-    </style>
+  <title>Knot9ja Email</title>
+  <style>
+    body {
+      font-family: 'Lora', Georgia, serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+
+    .main {
+      width: 100%;
+      max-width: 600px; /* Keeps the content from stretching too wide */
+      margin: 0 auto;
+      text-align: center;
+      background-color: #e3eafb;
+    }
+
+    .main-image {
+      width: 100%;
+    }
+
+    header {
+      margin-top: 40px;
+    }
+
+    .main-content {
+      padding-top: 25px;
+      padding-bottom: 100px;
+      padding-right: 20px;
+      padding-left: 20px;
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
+
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 40px;
+
+    }
+    p{
+      font-size: 16px
+    }
+  </style>
 </head>
 <body>
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
-    <tr>
-        <td align="center">
-            <!-- Main Section Table -->
-            <table border="0" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5; text-align:center;"
-                   width="600">
-                <tr>
-                    <td style="padding-top: 80px; padding-bottom: 80px;">
-                        <h1 style="color:#5C6AC4; margin:0; font-size:48px;">Welcome to Knot9ja!</h1>
-                        <p style="font-size:16px; margin:20px 0;">
-                            You have subscribed to our waitlist.<br>
-                            Stay tuned for more updates!
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding: 0; padding-top:2rem;">
-                        <!-- Full-width Image -->
-                        <img alt="Knot9jaLogo"
-                             src="https://assets.onecompiler.app/43ghsktb5/43ghsh5r3/Screenshot%202025-05-02%20091109.png"
-                             style="width:100%; display:block; border:0;"/>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
+  <div class="main">
+    <header>
+      <img alt="Knot9jaLogo"
+           src="https://assets.onecompiler.app/43ghsktb5/43ghsh5r3/Screenshot%202025-05-02%20091109.png"
+            class="main-image"
+      />
+    </header>
+    <div class="main-content">
+      <h1>Welcome to Knot9ja!</h1>
+      <p>You have subscribed to our waitlist.
+          <br> We cannot wait to show you what we have been cooking!
+          <br>
+          <br> Stay tuned for more updates regarding our development
+          <br> and eventually... <span style="font-size: 20px"> our LAUNCH!</span>
+
+      </p>
+    </div>
+    <footer style="padding: 20px; background-color: #d9e2f1; text-align: center; font-size: 14px; color: #333;">
+  <div style="margin-bottom: 10px;">
+    <a href="https://facebook.com/knot9ja" target="_blank" style="margin: 0 8px;">
+      <img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Facebook" width="24" height="24" />
+    </a>
+    <a href="https://twitter.com/knot9ja" target="_blank" style="margin: 0 8px;">
+      <img src="https://cdn-icons-png.flaticon.com/24/733/733579.png" alt="Twitter" width="24" height="24" />
+    </a>
+    <a href="https://www.instagram.com/its_knot9ja?igsh=MTVmMjcwOTltMTZqNg==" target="_blank" style="margin: 0 8px;">
+      <img src="https://cdn-icons-png.flaticon.com/24/2111/2111463.png" alt="Instagram" width="24" height="24" />
+    </a>
+  </div>
+  <div style="margin-bottom: 10px;">
+    © 2025 Knot9ja. All rights reserved.
+  </div>
+  <div>
+    <a href="https://knot9ja.com/privacy" style="color: #333; text-decoration: none;">Privacy Policy</a> |
+    <a href="https://knot9ja.com.ng/unsubscribe/{{email}}" style="color: #333; text-decoration: none;">Unsubscribe</a>
+  </div>
+</footer>
+
+  </div>
 </body>
 </html>

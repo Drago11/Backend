@@ -1,6 +1,7 @@
 import json
 import logging
 import random
+from datetime import timedelta
 from typing import Annotated
 
 from argon2 import PasswordHasher
@@ -38,7 +39,8 @@ class UserService:
             verification_code: str = str(random.randint(100000, 999999))
             await self.redis.set(
                 verification_code,
-                new_user.model_dump_json()  # Converting pydantic model to JSON
+                new_user.model_dump_json(),  # Converting pydantic model to JSON
+                ex=timedelta(minutes=15)
             )
 
             await send_email_verification_email(
@@ -75,7 +77,7 @@ class UserService:
 
     async def get_user_by_email(self, email: EmailStr) -> UserOutModel | None:
         try:
-            user = await self.repo.get_user_by_email(email)
+            user = await self.repo.get_user_by_email(str(email))
             if not user:
                 return None
             return UserOutModel.from_user(user)

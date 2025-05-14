@@ -9,7 +9,7 @@ from ..db import Base
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, index=True)
     firstname: Mapped[str] = mapped_column(String(64), nullable=False)
     lastname: Mapped[str] = mapped_column(String(64), nullable=False)
     email:Mapped[str] = mapped_column(String(255), nullable=False, unique=True)

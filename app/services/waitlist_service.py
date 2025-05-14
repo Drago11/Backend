@@ -1,6 +1,7 @@
 import logging
 from typing import Sequence, Annotated
 
+from fastapi import BackgroundTasks
 from fastapi.exceptions import HTTPException
 from fastapi.params import Depends
 from pydantic import EmailStr
@@ -18,16 +19,17 @@ class WaitlistService:
     def __init__(self, waitlist_repository: WaitlistRepository):
         self.repo = waitlist_repository
 
-    async def add_email_to_waitlist(self, email: EmailStr) -> dict[str, str]:
+    async def add_email_to_waitlist(self, email: EmailStr, background_tasks: BackgroundTasks) -> dict[str, str]:
         """
         Responsible for adding an email to the waitlist,
         as well as sending confirmation mails to the users: using the WaitlistEmailSender
+        :param background_tasks:
         :param email:
         :return: dict[str, str]
         """
         try:
             await self.repo.add_email_to_waitlist(email)
-            await send_waitlist_confirmation_email(email)
+            await send_waitlist_confirmation_email(email, background_tasks)
             return {"detail": "added to waitlist successfully"}
 
         except IntegrityError as e:
@@ -48,7 +50,8 @@ class WaitlistService:
 
     async def send_mail_to_waitlist_subscribers(
             self,
-            email_message: EmailBody
+            email_message: EmailBody,
+            background_tasks: BackgroundTasks
     ) -> dict[str, str]:
         try:
             waitlist_subs: Sequence[WaitlistSubscriber] = await self.get_waitlist_subscribers()
@@ -58,6 +61,7 @@ class WaitlistService:
                 title=email_message.title,
                 recipients=waitlist_subs_emails,
                 body=email_message.body,
+                background_tasks=background_tasks
             )
             return {"detail": "successfully sent email to waitlist subscribers" }
         except Exception as e:

@@ -1,18 +1,22 @@
+from datetime import timedelta
 import logging
+from random import randint
 from typing import Annotated
 
 import httpx
 import jwt
+from argon2 import PasswordHasher
 from authlib.integrations.starlette_client import OAuth
 from fastapi import HTTPException
 from fastapi.params import Depends
-from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError
-from pydantic import EmailStr
+from redis.asyncio import Redis
+from ..redis_handler import get_redis_client
 from starlette.requests import Request
 
-from app.core import settings
-from app.core.utils import password_is_correct, generate_access_token, generate_refresh_token
+from app.core import settings, send_email_async
+from app.core.utils import password_is_correct, generate_access_token, generate_refresh_token, \
+    render_waitlist_update_template
 from app.models import User, RefreshToken
 from app.repositories import UserRepository, get_user_repo, get_token_repo, RefreshTokenRepo
 from app.schemas import UserInModel
@@ -55,9 +59,10 @@ async def get_user_phone_number(google_access_token: str) -> str|None:
 
 
 class AuthHandler:
-    def __init__(self, user_repo: UserRepository, token_repo: RefreshTokenRepo):
+    def __init__(self, user_repo: UserRepository, token_repo: RefreshTokenRepo, redis_client: Redis):
         self.user_repo = user_repo
         self.token_repo = token_repo
+        self.redis_client = redis_client
 
 
     async def login(self, username: str, password: str):
@@ -66,9 +71,9 @@ class AuthHandler:
         will verify if the user exists
         and will verify if the password (hashed) and username matches.
 
-        Then, if the email entered was initially created with Google sign in, prompt them to either sign in with google
+        Then, if the email entered was initially created with Google sign in, prompt them to either sign in with Google
 
-        :param username:
+        :param username: email essentially
         :param password:
 
         :return: access_token, refresh_token
@@ -104,9 +109,9 @@ class AuthHandler:
 
     async def refresh(self, refresh_token: str):
         """
-        Take a refresh token and verify -
-            if it is in the database
-            If the token is still valid,
+        Take a refresh token and verify
+            1. if it is in the database
+            2. If the token is still valid,
         and then generate a new access token, as well as a new refresh token invalidating the old one in the process,
         and then return both to the user.
 
@@ -141,11 +146,11 @@ class AuthHandler:
 
 
             return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "Bearer"}
-        except ExpiredSignatureError as e:
-            raise HTTPException(status_code=401, detail="Token expired. Login in again")
+        except ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired. Login again")
         except InvalidTokenException as e:
             logger.error(e)
-            raise HTTPException(status_code=401, detail="invalid or expired refresh token")
+            raise HTTPException(status_code=401, detail="Token expired. Login again")
         except Exception as e:
             logger.error(e)
             raise HTTPException(status_code=500, detail="Error refreshing token")
@@ -221,8 +226,55 @@ class AuthHandler:
         await self.token_repo.delete_existing_token(email)
         return {"detail": "logged out successfully"}
 
+    async def change_password_request(self, email: str):
+        """
+        Takes in the email and generates a verification code that it sends to the email of the user.
+        Simultaneously stores the verification code in redis.
+
+        :param email:
+        :return:
+        """
+
+        try:
+            # Generate 6-digit code that would be sent to the user email, and then store it in redis
+            verification_code = randint(100000, 999999)
+            await self.redis_client.set(
+                name=str(verification_code),
+                value=email,
+                ex=timedelta(minutes=15)
+            )
+
+            email_verification_body = await render_waitlist_update_template(
+                title=str(verification_code),
+                body="Please use this as your verification code. "
+                    "<br> If you did not initiate this request, you can safely ignore it."
+            )
+            send_email_async.delay(subject="[Knot9ja] Password Reset", recipients=[email], body=email_verification_body)
+            return {"detail": "verification code has been sent to the user"}
+        except Exception as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
+
+    async def reset_password(self, code:str, password: str):
+        user_email: str = await self.redis_client.get(code)
+        await self.redis_client.delete(code)
+
+        if user_email is None:
+            raise HTTPException(status_code=400, detail="Invalid code")
+
+        ph = PasswordHasher()
+        hashed_password = ph.hash(password)
+        try:
+            await self.user_repo.update_user_details(email=user_email, hashed_password=hashed_password)
+            await self.token_repo.delete_existing_token(email=user_email)
+            return {"detail": "User password has been changed"}
+        except Exception as e:
+            logger.error(e)
+            raise HTTPException(status_code=500, detail="An unexpected error occurred")
+
 def get_auth_handler(
         user_repo: Annotated[UserRepository, Depends(get_user_repo)],
-        token_repo: Annotated[RefreshTokenRepo, Depends(get_token_repo)]
+        token_repo: Annotated[RefreshTokenRepo, Depends(get_token_repo)],
+        redis_client: Annotated[Redis, Depends(get_redis_client)]
 ) -> AuthHandler:
-    return AuthHandler(user_repo, token_repo)
+    return AuthHandler(user_repo, token_repo,  redis_client)

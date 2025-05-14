@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from app.db.base import Base  # Update this to your actual Base path
-from app.models import User, WaitlistSubscriber, RefreshToken
+from app.models import User, WaitlistSubscriber, RefreshToken, Job
 
 # Alembic Config object
 config = context.config

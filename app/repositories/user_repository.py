@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Annotated
 
 from fastapi.params import Depends
@@ -16,7 +17,9 @@ class UserRepository:
         self.session = session
 
     async def create_new_user(self, new_user: UserInModel, signupoption: str = "email") -> User:
+        user_id = str(uuid.uuid4())
         user = User(
+            id=user_id,
             firstname=new_user.firstname,
             lastname=new_user.lastname,
             email=new_user.email,

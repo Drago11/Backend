@@ -7,6 +7,7 @@ from fastapi.requests import Request
 
 from app.auth import AuthHandler, get_auth_handler, oauth
 from app.core.utils import get_current_user
+from app.schemas.auth_schemas import VerificationCode
 
 auth_router = APIRouter(prefix="/auth", tags=["AuthRouter"])
 
@@ -57,6 +58,25 @@ async def handle_google_callback(
     tokens = await auth_handler.handle_google_callback(request)
 
     return tokens
+
+
+@auth_router.post("/reset-password")
+async def request_reset_password(email: str, auth_handler: Annotated[AuthHandler, Depends(get_auth_handler)]):
+    message = await auth_handler.change_password_request(email)
+    return message
+
+@auth_router.post("/change-password")
+async def reset_password(password_change_request: VerificationCode, auth_handler: Annotated[AuthHandler, Depends(get_auth_handler)]):
+    message = await auth_handler.reset_password(password_change_request.code, password_change_request.password)
+    return message
+
+@auth_router.post("/logout")
+async def logout(
+        email: str,
+        auth_handler: Annotated[AuthHandler, Depends(get_auth_handler)]
+):
+    message = await auth_handler.logout(email)
+    return message
 
 @auth_router.get("/get_user")
 async def get_user(user_data: Annotated[dict, Depends(get_current_user)]):

@@ -7,11 +7,21 @@ import jwt
 from argon2 import PasswordHasher
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
+from jinja2 import Environment, FileSystemLoader
 
 from app.core import settings
 from app.repositories import RefreshTokenRepo
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+
+env = Environment(
+    loader=FileSystemLoader(
+        "app/templates"
+    ),
+    enable_async=True,
+)
+
+
 
 def password_is_correct(user_password: str, supplied_password: str) -> bool:
     ph = PasswordHasher()
@@ -93,3 +103,21 @@ def get_current_user(token: Annotated[str, Depends(oauth_scheme)]) -> dict[str, 
         return payload
     except:
         raise
+
+email_verify_template =env.get_template("UserInfoTemplate.html")
+WaitlistTemplate = env.get_template("WaitlistTemplate.html")
+WaitlistUpdateTemplate = env.get_template("UserInfoTemplate.html")
+
+async def get_email_verification_template(**kwargs) -> str:
+    return await email_verify_template.render_async(**kwargs)
+
+
+async def render_waitlist_template(**kwargs) -> str:
+    """Render the waitlist template with the given context variables."""
+    return await WaitlistTemplate.render_async(**kwargs)
+
+
+async def render_waitlist_update_template(**kwargs) -> str:
+    """Render the waitlist template with the given context variables."""
+    return await WaitlistUpdateTemplate.render_async(**kwargs)
+

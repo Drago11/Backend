@@ -7,7 +7,7 @@ from fastapi_mail import MessageSchema, MessageType, FastMail
 from pydantic import EmailStr
 
 from .config import conf, email_settings, settings
-from ..celery_app import make_celery
+from .celery_app import make_celery
 
 celery_app = make_celery(settings)
 
@@ -32,7 +32,7 @@ def send_email(
     logger.info(f"Successfully sent waitlist email to {recipients}")
 
 @celery_app.task
-def send_email_async(subject: str, recipients: list[EmailStr], body: str) -> None:
+def send_email_async(subject: str, recipients: list[str], body: str) -> None:
     message = MessageSchema(
         subject=subject,
         recipients=recipients,

@@ -10,7 +10,8 @@ load_dotenv()
 class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     ECHO_SQL: bool = os.getenv("ECHO_SQL")
-    REDIS_URL: str = os.getenv("REDIS_URL")
+    REDIS_URL: str = f"{os.getenv('REDIS_URL')}/0"
+    CELERY_REDIS_URL: str = f"{os.getenv('REDIS_URL')}/1"
     API_KEYS: list[str] = os.getenv("API_KEYS")
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     ALGORITHM: str = os.getenv("ALGORITHM")
